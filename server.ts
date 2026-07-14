@@ -19,10 +19,47 @@ async function startServer() {
       
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3.5-flash',
         contents: `Analisis konteks konten ini: ${youtubeUrl || textDescription}. Berikan 3 saran hook video pendek yang menarik (dalam bahasa Indonesia), maksimal 2 kalimat per saran.`
       });
 
+      res.json({ result: response.text });
+    } catch (error: any) {
+      console.error(error);
+      res.status(500).json({ error: error.message || "Terjadi kesalahan pada AI" });
+    }
+  });
+
+  app.post("/api/chat", async (req, res) => {
+    try {
+      const { history } = req.body;
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      
+      const systemInstruction = "Kamu adalah asisten AI untuk 'Meo Studio', sebuah platform editing dan kliping video AI otomatis. Kamu ramah, profesional, dan selalu menggunakan Bahasa Indonesia. Tugasmu hanya membantu menjawab pertanyaan seputar penggunaan aplikasi, memberikan tips editing, dan bantuan umum. Kamu TIDAK BISA mengedit atau menggenerate video secara langsung. Jangan pernah berhalusinasi fitur yang tidak ada.";
+      
+      // Convert history to genai format
+      // history format from client: [{ role: 'user' | 'ai', content: string }]
+      // SDK format: [{ role: 'user' | 'model', parts: [{ text: string }] }]
+      const formattedHistory = history.map((msg: any) => ({
+        role: msg.role === 'ai' ? 'model' : 'user',
+        parts: [{ text: msg.content }]
+      }));
+
+      // Pop the last user message to send as current message, rest as history
+      const lastMessage = formattedHistory.pop();
+
+      const chat = ai.chats.create({
+        model: 'gemini-3.5-flash',
+        config: {
+          systemInstruction
+        },
+        history: formattedHistory
+      });
+      
+      const response = await chat.sendMessage({
+        message: lastMessage.parts[0].text
+      });
+      
       res.json({ result: response.text });
     } catch (error: any) {
       console.error(error);

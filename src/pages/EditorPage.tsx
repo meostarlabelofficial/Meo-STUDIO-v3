@@ -1,4 +1,4 @@
-import { Scissors, Play, Settings2, Download, Type, Music } from 'lucide-react';
+import { Scissors, Play, Settings2, Download, Type, Music, Film } from 'lucide-react';
 
 export default function EditorPage() {
   return (

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Upload, Film, Scissors, Loader2, Sparkles, Youtube } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { cn } from '../lib/utils';
